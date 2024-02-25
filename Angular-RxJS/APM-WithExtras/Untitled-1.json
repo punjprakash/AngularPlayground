@@ -1,0 +1,197 @@
+kubectl.kubernetes.io/last-applied-configuration={
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+        "annotations": {},
+        "labels": {
+            "app": "od-router",
+            "env": "qa-dal"
+        },
+        "name": "od-router",
+        "namespace": "content",
+        "resourceVersion": "414135116",
+        "uid": "a852aaf9-5975-4d20-9044-1bf0aef84719"
+    },
+    "spec": {
+        "podManagementPolicy": "OrderedReady",
+        "replicas": 1,
+        "revisionHistoryLimit": 10,
+        "selector": {
+            "matchLabels": {
+                "app": "od-router"
+            }
+        },
+        "serviceName": "od-router",
+        "template": {
+            "metadata": {
+                "annotations": {
+                    "kubectl.kubernetes.io/restartedAt": "2024-02-13T16:10:21-06:00"
+                },
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "od-router",
+                    "env": "qa-dal"
+                }
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "envFrom": [
+                            {
+                                "configMapRef": {
+                                    "name": "cdn-config-mggtdk2cb9"
+                                }
+                            },
+                            {
+                                "secretRef": {
+                                    "name": "cdn-secrets"
+                                }
+                            }
+                        ],
+                        "image": "us.icr.io/aacom/od-baseserver-qa:v3.15",
+                        "imagePullPolicy": "IfNotPresent",
+                        "livenessProbe": {
+                            "exec": {
+                                "command": [
+                                    "/opt/interwoven/OpenDeployNG/bin/iwodcmd",
+                                    "serverstatus"
+                                ]
+                            },
+                            "failureThreshold": 3,
+                            "initialDelaySeconds": 30,
+                            "periodSeconds": 10,
+                            "successThreshold": 1,
+                            "timeoutSeconds": 1
+                        },
+                        "name": "od-router",
+                        "resources": {
+                            "limits": {
+                                "cpu": "500m",
+                                "memory": "512M"
+                            },
+                            "requests": {
+                                "cpu": "300m",
+                                "memory": "256M"
+                            }
+                        },
+                        "securityContext": {
+                            "allowPrivilegeEscalation": false,
+                            "runAsNonRoot": true
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/etc/config",
+                                "name": "config-volume"
+                            },
+                            {
+                                "mountPath": "/home/aaadm/iwatch",
+                                "name": "iwatch-volume"
+                            },
+                            {
+                                "mountPath": "/opt/app/od602",
+                                "name": "pvc-dummy2"
+                            },
+                            {
+                                "mountPath": "/usr/local/akamai_netstorage/.ssh",
+                                "name": "akamai-netstorage-volume"
+                            }
+                        ]
+                    }
+                ],
+                "dnsPolicy": "ClusterFirst",
+                "imagePullSecrets": [
+                    {
+                        "name": "content-us-icr-io"
+                    }
+                ],
+                "initContainers": [
+                    {
+                        "command": [
+                            "sh",
+                            "-c",
+                            "chown 1101:1100 /opt/app/od602"
+                        ],
+                        "image": "alpine",
+                        "imagePullPolicy": "Always",
+                        "name": "nfs-fixer",
+                        "resources": {},
+                        "securityContext": {
+                            "runAsUser": 0
+                        },
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/opt/app/od602",
+                                "name": "pvc-dummy2"
+                            }
+                        ]
+                    }
+                ],
+                "restartPolicy": "Always",
+                "schedulerName": "default-scheduler",
+                "securityContext": {
+                    "runAsGroup": 1100,
+                    "runAsUser": 1101
+                },
+                "terminationGracePeriodSeconds": 30,
+                "volumes": [
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "od-router-dchddd4d22"
+                        },
+                        "name": "config-volume"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "iwatch-74gd6k5kff"
+                        },
+                        "name": "iwatch-volume"
+                    },
+                    {
+                        "configMap": {
+                            "defaultMode": 420,
+                            "name": "akamai-netstorage-kg5c79644h"
+                        },
+                        "name": "akamai-netstorage-volume"
+                    }
+                ]
+            }
+        },
+        "updateStrategy": {
+            "rollingUpdate": {
+                "partition": 0
+            },
+            "type": "RollingUpdate"
+        },
+        "volumeClaimTemplates": [
+            {
+                "apiVersion": "v1",
+                "kind": "PersistentVolumeClaim",
+                "metadata": {
+                    "creationTimestamp": null,
+                    "name": "pvc-dummy2"
+                },
+                "spec": {
+                    "accessModes": [
+                        "ReadWriteOnce"
+                    ],
+                    "resources": {
+                        "requests": {
+                            "storage": "20Gi"
+                        }
+                    },
+                    "storageClassName": "topology-aware-retain2",
+                    "volumeMode": "Filesystem"
+                },
+                "status": {
+                    "phase": "Pending"
+                }
+            }
+        ]
+    }
+}
